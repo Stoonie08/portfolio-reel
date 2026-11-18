@@ -8,9 +8,16 @@ iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 @media(min-aspect-ratio:1/1){iframe{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:max(100vw,177.78vh);height:max(100vh,56.25vw)}}
 nav{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:4%;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px;border-radius:12px;background:#161616e8;max-width:92%}
 button,a{color:white;background:transparent;border:1px solid #888;border-radius:6px;font:inherit;padding:8px;text-decoration:none;cursor:pointer}input{width:86px;accent-color:white}label{display:flex;align-items:center;gap:5px}[hidden]{display:none}
+nav{right:0;left:0;bottom:18px;max-width:none;justify-content:center;background:none;padding:0;flex-direction:column}
+.transport,.audio{display:flex;align-items:center;gap:10px}
+.transport button,.audio{background:rgba(26,30,34,.65);border:1px solid rgba(255,255,255,.48);box-shadow:0 2px 12px #0004,inset 0 1px 1px #fff3;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.transport button{border-radius:50%;width:48px;height:48px;padding:0;font-size:15px;font-weight:600}
+.transport #play{width:56px;height:56px;font-size:19px}
+.audio{border-radius:24px;padding:2px 12px;font-size:13px}.audio button{border:0}
+button:focus-visible,input:focus-visible{outline:3px solid white;outline-offset:2px}
 </style>
 <main><iframe id="video" title="Stoney Jimenez portfolio reel" src="https://player.vimeo.com/video/1213101749?autoplay=1&amp;muted=1&amp;loop=1&amp;playsinline=1&amp;controls=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-<nav aria-label="Video controls"><button id="play" hidden>Play</button><button id="sound" hidden>Unmute</button><label id="level" hidden>Volume <input id="vol" type="range" min="0" max="100" value="0"></label><a id="fallback" href="https://vimeo.com/1213101749" target="_blank" rel="noopener">Watch on Vimeo</a></nav></main>
+<nav aria-label="Video controls"><div class="transport"><button id="back" aria-label="Rewind 10 seconds" title="Rewind 10 seconds" hidden>−10</button><button id="play" aria-label="Play" hidden>▶</button><button id="forward" aria-label="Forward 10 seconds" title="Forward 10 seconds" hidden>+10</button></div><div class="audio" id="audio" hidden><button id="sound" hidden>Unmute</button><label id="level" hidden>Volume <input id="vol" type="range" min="0" max="100" value="0"></label></div><a id="fallback" href="https://vimeo.com/1213101749" target="_blank" rel="noopener">Watch on Vimeo</a></nav></main>
 <script src="https://player.vimeo.com/api/player.js"></script>
 <script>
 if(window.Vimeo){
@@ -20,18 +27,29 @@ if(window.Vimeo){
  const fallback=()=>{el('fallback').hidden=false};
  const sync=async()=>{
    const [paused,muted,volume]=await Promise.all([player.getPaused(),player.getMuted(),player.getVolume()]);
-   el('play').textContent=paused?'Play':'Pause';
+   el('play').textContent=paused?'▶':'Ⅱ';
+   el('play').setAttribute('aria-label',paused?'Play':'Pause');
+   el('play').title=paused?'Play':'Pause';
    el('sound').textContent=muted||volume===0?'Unmute':'Mute';
    el('vol').value=muted?0:Math.round(volume*100);
    if(!muted&&volume>0)lastVolume=volume;
  };
  player.ready().then(async()=>{
    await sync();
-   for(const id of ['play','sound','level'])el(id).hidden=false;
+   for(const id of ['back','play','forward','audio','sound','level'])el(id).hidden=false;
    el('fallback').hidden=true;
  }).catch(fallback);
  for(const event of ['play','pause','volumechange'])player.on(event,()=>sync().catch(fallback));
  player.on('error',fallback);
+ let pendingSeek=Promise.resolve();
+ function seekBy(seconds){
+   pendingSeek=pendingSeek.then(async()=>{
+     const [time,duration]=await Promise.all([player.getCurrentTime(),player.getDuration()]);
+     if(duration>0)await player.setCurrentTime(Math.min(duration,Math.max(0,time+seconds)));
+   }).catch(fallback);
+ }
+ el('back').onclick=()=>seekBy(-10);
+ el('forward').onclick=()=>seekBy(10);
  el('play').onclick=async()=>{try{if(await player.getPaused())await player.play();else await player.pause();await sync()}catch{fallback()}};
  el('sound').onclick=async()=>{try{if(await player.getMuted()||await player.getVolume()===0){await player.setVolume(lastVolume);await player.setMuted(false)}else await player.setMuted(true);await sync()}catch{fallback()}};
  el('vol').onchange=async e=>{const v=Number(e.target.value)/100;try{await player.setVolume(v);await player.setMuted(v===0);await sync()}catch{fallback()}};
