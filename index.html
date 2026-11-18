@@ -18,9 +18,12 @@ button:focus-visible,input:focus-visible{outline:3px solid white;outline-offset:
 .transport button{border:0;box-shadow:0 3px 12px #0003;background:rgba(44,48,52,.53)}
 .transport button svg{display:block;margin:auto}
 .transport button:hover{background:rgba(66,70,74,.68)}
+.audio{width:230px;max-width:94vw;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+.audio label,.audio input{width:100%;margin:0}.audio input{height:24px;cursor:pointer}
+[hidden]{display:none!important}
 </style>
 <main><iframe id="video" title="Stoney Jimenez portfolio reel" src="https://player.vimeo.com/video/1213101749?autoplay=1&amp;muted=1&amp;loop=1&amp;playsinline=1&amp;controls=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-<nav aria-label="Video controls"><div class="transport"><button id="back" aria-label="Rewind 10 seconds" title="Rewind 10 seconds" hidden><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(32 0) scale(-1 1)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 10a12 12 0 1 0 2 9 M26 4v6h-6"/></g><text x="16" y="21" fill="currentColor" text-anchor="middle" font-size="12" font-family="system-ui">10</text></svg></button><button id="play" aria-label="Play" hidden>▶</button><button id="forward" aria-label="Forward 10 seconds" title="Forward 10 seconds" hidden><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 10a12 12 0 1 0 2 9 M26 4v6h-6"/></g><text x="16" y="21" fill="currentColor" text-anchor="middle" font-size="12" font-family="system-ui">10</text></svg></button></div><div class="audio" id="audio" hidden><button id="sound" hidden>Unmute</button><label id="level" hidden>Volume <input id="vol" type="range" min="0" max="100" value="0"></label></div><a id="fallback" href="https://vimeo.com/1213101749" target="_blank" rel="noopener">Watch on Vimeo</a></nav></main>
+<nav aria-label="Video controls"><div class="transport"><button id="back" aria-label="Rewind 10 seconds" title="Rewind 10 seconds" hidden><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(32 0) scale(-1 1)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 10a12 12 0 1 0 2 9 M26 4v6h-6"/></g><text x="16" y="21" fill="currentColor" text-anchor="middle" font-size="12" font-family="system-ui">10</text></svg></button><button id="play" aria-label="Play" hidden>▶</button><button id="forward" aria-label="Forward 10 seconds" title="Forward 10 seconds" hidden><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 10a12 12 0 1 0 2 9 M26 4v6h-6"/></g><text x="16" y="21" fill="currentColor" text-anchor="middle" font-size="12" font-family="system-ui">10</text></svg></button><button id="sound" aria-label="Unmute" title="Unmute" hidden></button></div><div class="audio" id="audio" hidden><label id="level" hidden><input aria-label="Volume" id="vol" type="range" min="0" max="100" value="0"></label></div><a id="fallback" href="https://vimeo.com/1213101749" target="_blank" rel="noopener">Watch on Vimeo</a></nav></main>
 <script src="https://player.vimeo.com/api/player.js"></script>
 <script>
 if(window.Vimeo){
@@ -33,7 +36,11 @@ if(window.Vimeo){
    el('play').textContent=paused?'▶':'Ⅱ';
    el('play').setAttribute('aria-label',paused?'Play':'Pause');
    el('play').title=paused?'Play':'Pause';
-   el('sound').textContent=muted||volume===0?'Unmute':'Mute';
+   const silent = muted || volume === 0;
+   const soundAction = silent ? 'Unmute' : 'Mute';
+   el('sound').setAttribute('aria-label',soundAction);
+   el('sound').title=soundAction;
+   el('sound').innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h4l5-4v14l-5-4H3z"/>'+(silent?'<path d="m16 9 6 6m0-6-6 6"/>':'<path d="M16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>')+'</svg>';
    el('vol').value=muted?0:Math.round(volume*100);
    if(!muted&&volume>0)lastVolume=volume;
  };
